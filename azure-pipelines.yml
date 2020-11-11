@@ -1,3 +1,6 @@
+variables:
+- group: Databricks-environment
+
 trigger:
   batch: true
   branches:
@@ -8,6 +11,11 @@ trigger:
     include:
       - v*.*
       - prod
+
+  paths:
+    exclude:
+      - .github/*
+      - mlruns/*
 
 stages:
 - stage: onPush
@@ -42,7 +50,7 @@ stages:
       displayName: 'Run Unit tests'
 
     - script: |
-        echo "[az-mp-test]" >> ~/.databrickscfg
+        echo "[{{cookiecutter.profile}}]" >> ~/.databrickscfg
         echo "host = $DATABRICKS_HOST" >> ~/.databrickscfg
         echo "token = $DATABRICKS_TOKEN" >> ~/.databrickscfg
       env:
@@ -51,11 +59,11 @@ stages:
       displayName: 'Prepare profile'
 
     - script: |
-        dbx deploy --jobs=cicd_demo-sample-integration-test
+        dbx deploy --jobs={{cookiecutter.project_slug}}-sample-integration-test
       displayName: 'Deploy integration test'
 
     - script: |
-        dbx launch --job=cicd_demo-sample-integration-test --trace
+        dbx launch --job={{cookiecutter.project_slug}}-sample-integration-test --trace
       displayName: 'Launch integration on test'
 
 - stage: onRelease
@@ -95,7 +103,7 @@ stages:
         displayName: 'Run Unit tests'
 
       - script: |
-          echo "[az-mp-test]" >> ~/.databrickscfg
+          echo "[{{cookiecutter.profile}}]" >> ~/.databrickscfg
           echo "host = $DATABRICKS_HOST" >> ~/.databrickscfg
           echo "token = $DATABRICKS_TOKEN" >> ~/.databrickscfg
         env:
@@ -104,13 +112,13 @@ stages:
         displayName: 'Prepare profile'
 
       - script: |
-          dbx deploy --jobs=cicd_demo-sample-integration-test
+          dbx deploy --jobs={{cookiecutter.project_slug}}-sample-integration-test
         displayName: 'Deploy integration test'
 
       - script: |
-          dbx launch --job=cicd_demo-sample-integration-test --trace
+          dbx launch --job={{cookiecutter.project_slug}}-sample-integration-test --trace
         displayName: 'Launch integration on test'
 
       - script: |
-          dbx deploy --jobs=cicd_demo-sample
+          dbx deploy --jobs={{cookiecutter.project_slug}}-sample
         displayName: 'Deploy the job'
